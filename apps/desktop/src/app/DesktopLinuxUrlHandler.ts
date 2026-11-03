@@ -291,7 +291,16 @@ export const make = Effect.gen(function* () {
       return;
     }
     yield* writeDesktopEntry;
-    if (!environment.isPackaged) return;
+    // Distro installs use shared Electron, where isPackaged can be false.
+    // A default handler needs a stable launcher, not an arbitrary Electron binary.
+    if (environment.isDevelopment) return;
+    if (
+      !environment.isPackaged &&
+      Option.isNone(environment.desktopLauncherPath) &&
+      Option.isNone(environment.appImagePath)
+    ) {
+      return;
+    }
 
     yield* Effect.gen(function* () {
       const { png } = yield* assets.iconPaths;
